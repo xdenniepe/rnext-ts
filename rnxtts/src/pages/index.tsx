@@ -1,17 +1,34 @@
-import { type NextPage } from "next"
-import Head from "next/head"
 import { api } from "~/utils/api"
-import CreatePostWizard from "./post-wizard"
 import { SignIn, SignInButton, SignOutButton, useUser } from "@clerk/nextjs"
-import PostView from "./post-view"
+import { type NextPage } from "next"
+import CreatePostWizard from "../components/posts/wizard"
+import Head from "next/head"
+import LoadingPage from "./loading"
+import PostView from "../components/posts/view"
+
+const Feed = () => {
+    const { data, isLoading: postsLoading } = api.posts.getAll.useQuery()
+
+    if (postsLoading) return <LoadingPage />
+    if (!data) return <>Something went wrong.</>
+
+    return (
+        <div className="flex flex-col">
+            {...data?.map((fullPost) => (
+                <PostView key={fullPost.post.id} {...fullPost} />
+            ))}
+        </div>
+    )
+}
 
 const Home: NextPage = () => {
-    const { data, isLoading } = api.posts.getAll.useQuery()
+    const { isLoaded: userLoaded, isSignedIn } = useUser()
 
-    const user = useUser()
+    // Start fetching asap
+    api.posts.getAll.useQuery()
 
-    if (isLoading) return <>Loading...</>
-    if (!data) return <>Something went wrong.</>
+    // return empty div if BOTH aren't loaded, since user tends to load faster
+    if (!userLoaded) return <div />
 
     return (
         <>
@@ -23,8 +40,8 @@ const Home: NextPage = () => {
             <main className="flex h-screen justify-center">
                 <div className="h-full w-full border-x border-slate-400 bg-slate-900 md:max-w-2xl ">
                     <div className="flex justify-end border-b border-slate-400 p-4">
-                        {!user.isSignedIn && <SignInButton />}
-                        {!!user.isSignedIn && <SignOutButton />}
+                        {!isSignedIn && <SignInButton />}
+                        {!!isSignedIn && <SignOutButton />}
                     </div>
                     <div className="flex border-b border-slate-400 p-4">
                         <SignIn
@@ -34,11 +51,7 @@ const Home: NextPage = () => {
                         />
                         <CreatePostWizard />
                     </div>
-                    <div className="flex flex-col">
-                        {...data?.map((fullPost) => (
-                            <PostView key={fullPost.post.id} {...fullPost} />
-                        ))}
-                    </div>
+                    <Feed />
                 </div>
             </main>
         </>
