@@ -26,8 +26,6 @@ const CreatePostWizard = () => {
         },
     })
 
-    console.log(user)
-
     return (
         <div className="flex w-full gap-3">
             <Image

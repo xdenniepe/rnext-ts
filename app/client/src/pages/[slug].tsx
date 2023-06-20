@@ -8,6 +8,7 @@ import superjson from "superjson"
 import PageLayout from "~/components/layout/Layout"
 import Image from "next/image"
 import LoadingPage from "./loading"
+import PostView from "~/components/post/view"
 
 export const getStaticProps = async (
     context: GetStaticPropsContext<{ slug: string }>
@@ -23,7 +24,6 @@ export const getStaticProps = async (
     if (typeof slug !== "string") throw new Error("no slug")
 
     const username = slug.replace("@", "")
-    console.log("username :", username)
 
     await ssg.profile.getUserByUsername.prefetch({ username })
 
@@ -43,23 +43,27 @@ export const getStaticPaths = () => {
 }
 
 const ProfileFeed = (props: { userId: string }) => {
-    const { data, isLoading } = api.posts.getPostByUserId.useQuery({
+    const { data, isLoading } = api.posts.getPostsByUserId.useQuery({
         userId: props.userId,
     })
 
     if (isLoading) return <LoadingPage />
 
-    // if (!data || data.length === 0) return <div>User has not posted</div>
+    if (!data) return <div>User has not posted</div>
 
-    return <div className="flex flex-col"></div>
+    return (
+        <div className="flex flex-col">
+            {data.map((fullPost) => (
+                <PostView key={fullPost.post.id} {...fullPost} />
+            ))}
+        </div> 
+    )
 }
 
 const SlugProfile: NextPage<{ username: string }> = ({ username }) => {
     const { data } = api.profile.getUserByUsername.useQuery({
         username,
     })
-
-    console.log(username)
 
     if (!data) return <div>404</div>
 
@@ -83,6 +87,7 @@ const SlugProfile: NextPage<{ username: string }> = ({ username }) => {
                     data.username ?? ""
                 }`}</div>
                 <div className="w-full border-b border-slate-400" />
+                <ProfileFeed userId={data.id} />
             </PageLayout>
         </>
     )
