@@ -1,10 +1,10 @@
 import { api } from "~/utils/api"
 import { SignIn, SignInButton, SignOutButton, useUser } from "@clerk/nextjs"
 import { type NextPage } from "next"
-import CreatePostWizard from "../components/posts/wizard"
+import CreatePostWizard from "../components/post/wizard"
 import Head from "next/head"
 import LoadingPage from "./loading"
-import PostView from "../components/posts/view"
+import PostView from "../components/post/view"
 
 const Feed = () => {
     const { data, isLoading: postsLoading } = api.posts.getAll.useQuery()
