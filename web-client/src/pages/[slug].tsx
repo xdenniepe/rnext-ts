@@ -7,6 +7,7 @@ import Head from "next/head"
 import superjson from "superjson"
 import PageLayout from "~/components/layout/Layout"
 import Image from "next/image"
+import LoadingPage from "./loading"
 
 export const getStaticProps = async (
     context: GetStaticPropsContext<{ slug: string }>
@@ -39,6 +40,18 @@ export const getStaticPaths = () => {
         paths: [],
         fallback: "blocking",
     }
+}
+
+const ProfileFeed = (props: { userId: string }) => {
+    const { data, isLoading } = api.posts.getPostByUserId.useQuery({
+        userId: props.userId,
+    })
+
+    if (isLoading) return <LoadingPage />
+
+    // if (!data || data.length === 0) return <div>User has not posted</div>
+
+    return <div className="flex flex-col"></div>
 }
 
 const SlugProfile: NextPage<{ username: string }> = ({ username }) => {
